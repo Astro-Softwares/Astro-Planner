@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astro Planner - 3D Neumorphism</title>
+    <!-- Import Montserrat font from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: #1e293b;
+            --text: #f3f4f6;
+            --text-light: #94a3b8;
+            --danger: #f87171;
+            --danger-bg: rgba(248, 113, 113, 0.15);
+            --border: #334155;
+            --hover-bg: #334155;
+            --active-tab: rgba(99, 102, 241, 0.2);
+            
+            /* 3D Shadows & Highlights */
+            --shadow-light: rgba(255, 255, 255, 0.05);
+            --shadow-dark: rgba(0, 0, 0, 0.5);
+            --btn-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.5), inset 0 2px 3px rgba(255, 255, 255, 0.2);
+            --card-shadow: 12px 12px 24px var(--shadow-dark), -6px -6px 16px var(--shadow-light);
+            --element-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+            --raised-shadow: 6px 6px 12px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+        }
+
+        [data-theme="light"] {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --card-bg: #f1f5f9;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --danger: #dc2626;
+            --danger-bg: #fee2e2;
+            --border: #cbd5e1;
+            --hover-bg: #e2e8f0;
+            --active-tab: #e0e7ff;
+            
+            /* 3D Shadows & Highlights for Light Mode */
+            --shadow-light: rgba(255, 255, 255, 0.8);
+            --shadow-dark: rgba(163, 177, 198, 0.6);
+            --btn-shadow: 0 6px 15px rgba(79, 70, 229, 0.3), inset 0 2px 3px rgba(255, 255, 255, 0.4);
+            --card-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
+            --element-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+            --raised-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+        }
+
+        body {
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 290px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+            box-sizing: border-box;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .sidebar-top h1 {
+            font-size: 1.25rem;
+            letter-spacing: -0.025em;
+            color: var(--text);
+            margin: 0 0 30px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px var(--shadow-light);
+        }
+
+        .sidebar-top h1 span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-link {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            text-align: left;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--raised-shadow);
+        }
+
+        .nav-link:hover {
+            color: var(--text);
+            transform: translateY(-2px);
+        }
+
+        .nav-link:active {
+            transform: translateY(0);
+            box-shadow: var(--element-shadow);
+        }
+
+        .nav-link.active {
+            background: var(--active-tab);
+            color: var(--primary);
+            font-weight: 600;
+            box-shadow: var(--element-shadow);
+            border-color: var(--primary);
+        }
+
+        .sidebar-bottom {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 3D Round Capsule Plus Button */
+        .sidebar-add-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: var(--btn-shadow);
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .sidebar-add-btn .plus-icon {
+            font-size: 1.2rem;
+            line-height: 1;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .sidebar-add-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-3px);
+        }
+
+        .sidebar-add-btn:active {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.4), inset 0 2px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+            box-sizing: border-box;
+            background: var(--bg);
+            perspective: 1000px;
+        }
+
+        .view-section {
+            display: none;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            transition: background-color 0.25s ease, border-color 0.25s ease;
+            transform-style: preserve-3d;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-top: 0;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 14px;
+            color: var(--text);
+            text-shadow: 1px 1px 2px var(--shadow-light);
+        }
+
+        /* Modal Overlay with 3D Depth */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 36px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), var(--card-shadow);
+            border: 1px solid var(--border);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 14px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            border: none;
+            padding: 0;
+        }
+
+        .close-modal-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-light);
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: var(--raised-shadow);
+            transition: all 0.2s;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--text);
+            transform: scale(1.05);
+        }
+
+        .close-modal-btn:active {
+            box-shadow: var(--element-shadow);
+        }
+
+        /* Form Controls - Inset 3D Effect */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            padding: 13px 16px;
+            box-sizing: border-box;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-family: 'Montserrat', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            box-shadow: var(--element-shadow);
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus {
+            border-color: var(--primary);
+            box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light), 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+
+        button.btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 0.95rem;
+            font-family: 'Montserrat', sans-serif;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            box-shadow: var(--btn-shadow);
+            transition: transform 0.2s, filter 0.2s;
+            margin-top: 10px;
+        }
+
+        button.btn-primary:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        button.btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Task List Layout - 3D Floating Elements */
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            margin-bottom: 14px;
+            gap: 14px;
+            box-shadow: var(--raised-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        li:hover {
+            transform: translateY(-3px);
+            box-shadow: 8px 8px 18px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+            border-color: var(--text-light);
+        }
+
+        .task-info {
+            flex-grow: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .task-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* Status Badges */
+        .badge-due-today,
+        .badge-overdue {
+            color: var(--danger);
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            background: var(--danger-bg);
+            padding: 3px 10px;
+            border-radius: 8px;
+            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Delete Button */
+        .delete-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--danger);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            box-shadow: var(--raised-shadow);
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger-bg);
+            transform: scale(1.05);
+        }
+
+        .delete-btn:active {
+            box-shadow: var(--element-shadow);
+            transform: scale(0.95);
+        }
+
+        .empty-state {
+            color: var(--text-light);
+            text-align: center;
+            font-size: 0.9rem;
+            padding: 40px 0;
+            background: none;
+            border: none;
+            box-shadow: none !important;
+        }
+
+        .empty-state:hover {
+            transform: none !important;
+        }
+
+        /* Theme Selector Buttons */
+        .theme-options {
+            display: flex;
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .theme-btn {
+            flex: 1;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: var(--raised-shadow);
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .theme-btn:active,
+        .theme-btn.active {
+            border-color: var(--primary);
+            background-color: var(--active-tab);
+            color: var(--primary);
+            font-weight: 600;
+            box-shadow: var(--element-shadow);
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-top">
+            <h1><span>Astro</span>.Planner</h1>
+            <div class="nav-links">
+                <button class="nav-link active" data-target="home-view">📋 All Plans</button>
+                <button class="nav-link" data-target="today-view">🔥 Due Today</button>
+                <button class="nav-link" data-target="overdue-view">⚠️ Overdue</button>
+                <button class="nav-link" data-target="upcoming-view">📅 Upcoming</button>
+                <button class="nav-link" data-target="settings-view">⚙️ Settings</button>
+            </div>
+        </div>
+        <div class="sidebar-bottom">
+            <button class="sidebar-add-btn" id="openModalBtn">
+                <span class="plus-icon">+</span> Create Plan
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        
+        <!-- All Plans View -->
+        <div id="home-view" class="view-section active">
+            <div class="card">
+                <h2>All Plans</h2>
+                <ul id="allPlanList"></ul>
+            </div>
+        </div>
+
+        <!-- Due Today View -->
+        <div id="today-view" class="view-section">
+            <div class="card">
+                <h2>Due Today</h2>
+                <ul id="todayPlanList"></ul>
+            </div>
+        </div>
+
+        <!-- Overdue View -->
+        <div id="overdue-view" class="view-section">
+            <div class="card">
+                <h2>Overdue Plans</h2>
+                <ul id="overduePlanList"></ul>
+            </div>
+        </div>
+
+        <!-- Upcoming View -->
+        <div id="upcoming-view" class="view-section">
+            <div class="card">
+                <h2>Upcoming Plans</h2>
+                <ul id="upcomingPlanList"></ul>
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settings-view" class="view-section">
+            <div class="card">
+                <h2>Preferences</h2>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Appearance Theme</label>
+                    <div class="theme-options">
+                        <button class="theme-btn" id="lightThemeBtn">☀️ Light Mode</button>
+                        <button class="theme-btn active" id="darkThemeBtn">🌙 Dark Mode</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Create Plan Modal Panel -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Plan</h2>
+                <button class="close-modal-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="planForm">
+                <div class="form-group">
+                    <label for="planTitle">Plan Title</label>
+                    <input type="text" id="planTitle" placeholder="e.g., Design review meeting" required>
+                </div>
+                <div class="form-group">
+                    <label for="planDate">Due Date</label>
+                    <input type="date" id="planDate" required>
+                </div>
+                <button type="submit" class="btn-primary">Save Plan</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const navLinks = document.querySelectorAll('.nav-link');
+        const viewSections = document.querySelectorAll('.view-section');
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const planForm = document.getElementById('planForm');
+        const planTitleInput = document.getElementById('planTitle');
+        const planDateInput = document.getElementById('planDate');
+
+        const allPlanList = document.getElementById('allPlanList');
+        const todayPlanList = document.getElementById('todayPlanList');
+        const overduePlanList = document.getElementById('overduePlanList');
+        const upcomingPlanList = document.getElementById('upcomingPlanList');
+
+        const lightThemeBtn = document.getElementById('lightThemeBtn');
+        const darkThemeBtn = document.getElementById('darkThemeBtn');
+
+        let plans = JSON.parse(localStorage.getItem('astro_plans')) || [];
+        let currentTheme = localStorage.getItem('astro_theme') || 'dark';
+
+        setTheme(currentTheme);
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.forEach(l => l.classList.remove('active'));
+                viewSections.forEach(v => v.classList.remove('active'));
+
+                link.classList.add('active');
+                const targetView = document.getElementById(link.getAttribute('data-target'));
+                targetView.classList.add('active');
+            });
+        });
+
+        openModalBtn.addEventListener('click', () => modalOverlay.classList.add('active'));
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            planForm.reset();
+        }
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('astro_theme', theme);
+            if (theme === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                lightThemeBtn.classList.add('active');
+                darkThemeBtn.classList.remove('active');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                darkThemeBtn.classList.add('active');
+                lightThemeBtn.classList.remove('active');
+            }
+        }
+
+        lightThemeBtn.addEventListener('click', () => setTheme('light'));
+        darkThemeBtn.addEventListener('click', () => setTheme('dark'));
+
+        function getTodayString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function savePlans() {
+            localStorage.setItem('astro_plans', JSON.stringify(plans));
+        }
+
+        function renderAll() {
+            renderList(plans, allPlanList, 'No plans created yet.');
+
+            const todayStr = getTodayString();
+            const todayPlans = plans.filter(p => p.date === todayStr);
+            renderList(todayPlans, todayPlanList, 'No plans due today.');
+
+            const overduePlans = plans.filter(p => p.date < todayStr);
+            renderList(overduePlans, overduePlanList, 'No overdue plans.');
+
+            const upcomingPlans = plans.filter(p => p.date > todayStr);
+            renderList(upcomingPlans, upcomingPlanList, 'No upcoming plans.');
+        }
+
+        function renderList(listData, containerElement, emptyMessage) {
+            containerElement.innerHTML = '';
+
+            if (listData.length === 0) {
+                containerElement.innerHTML = `<li class="empty-state">${emptyMessage}</li>`;
+                return;
+            }
+
+            const todayStr = getTodayString();
+
+            listData.forEach((plan) => {
+                const globalIndex = plans.indexOf(plan);
+                const li = document.createElement('li');
+
+                let statusHTML = '';
+                if (plan.date === todayStr) {
+                    statusHTML = `<span class="badge-due-today">Due Today</span>`;
+                } else if (plan.date < todayStr) {
+                    statusHTML = `<span class="badge-overdue">Overdue</span>`;
+                }
+
+                li.innerHTML = `
+                    <div class="task-info">
+                        <div class="task-title">
+                            ${escapeHTML(plan.title)}
+                            ${statusHTML}
+                        </div>
+                        <div class="task-date">Due: ${plan.date}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deletePlan(${globalIndex})" title="Delete">✕</button>
+                `;
+
+                containerElement.appendChild(li);
+            });
+        }
+
+        planForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = planTitleInput.value.trim();
+            const date = planDateInput.value;
+
+            if (!title || !date) return;
+
+            plans.push({ title, date });
+            savePlans();
+            renderAll();
+            closeModal();
+        });
+
+        window.deletePlan = function(index) {
+            plans.splice(index, 1);
+            savePlans();
+            renderAll();
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        renderAll();
+    </script>
+</body>
+</html>
